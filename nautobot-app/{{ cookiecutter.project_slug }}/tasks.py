@@ -89,7 +89,7 @@ def _await_healthy_container(context, container_id, service=""):
         sec += 1
         minutes, seconds = divmod(sec, 60)
         sleep(1)
-        print(f"Waiting for `{container_id}` {service ' ' if service else ''}container to become healthy ... {minutes:02d}:{seconds:02d}")
+        print(f"Waiting for `{container_id}` {service + ' ' if service else ''}container to become healthy ... {minutes:02d}:{seconds:02d}")
 
 
 def task(function=None, *args, **kwargs):
