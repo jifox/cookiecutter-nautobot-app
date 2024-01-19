@@ -24,6 +24,17 @@ services:
     <<:
       - *nautobot-base
       - *nautobot-build
+    healthcheck:
+      interval: 30s
+      timeout: 10s
+      start_period: 4m  # intentionally conservative upper bound for `npm install` time in a fresh setup
+      retries: 3
+      test:
+        - "CMD"
+        - "curl"
+        - "-f"
+        - "http://localhost:8080/health/"
+        
   worker:
     entrypoint:
       - "sh"
@@ -46,6 +57,8 @@ services:
       - "nautobot-server celery beat -l $$NAUTOBOT_LOG_LEVEL"  ## $$ because of docker-compose
     depends_on:
       nautobot:
+        condition: "service_healthy"
+      worker:
         condition: "service_healthy"
     healthcheck:
       disable: true
