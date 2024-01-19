@@ -1,0 +1,87 @@
+# Cookiecutter Templates for Creating Nautobot Apps
+
+This repository houses Cookiecutter templates, designed to kick-start your Nautobot App development journey. Leveraging these templates allows for a standardized and rapid creation of Nautobot Apps, adhering to best practices and common structural paradigms.
+
+## About Nautobot Apps
+
+A Nautobot App is a Django application designed to extend the functionality of [Nautobot](https://github.com/nautobot/nautobot), an open-source Network Source of Truth and Automation Platform. By creating a Nautobot App, developers can introduce custom data models, views, templates, and REST API endpoints, enabling bespoke network management solutions and integrations. This modular approach fosters a flexible and scalable environment, allowing for a tailored experience in managing network resources and workflows.
+
+## About Cookiecutter
+
+[Cookiecutter](https://github.com/cookiecutter/cookiecutter) is a command-line utility that simplifies the creation of new projects by generating them from predefined templates. These templates utilize the [Jinja](https://jinja.palletsprojects.com/) templating engine, allowing for dynamic content generation and customization. By providing a structured and consistent framework, Cookiecutter helps developers to avoid boilerplate code and to adhere to best practices right from the project's inception. The flexibility and power of Jinja under the hood enable Cookiecutter templates to encapsulate complex setups, making it a valuable tool for accelerating project initialization in various ecosystems.
+
+## Templates
+
+The following templates are available:
+
+- [`nautobot-app`](./nautobot-app) - A template for creating a new Nautobot App.
+- [`nautobot-app-ssot`](./nautobot-app-ssot) - A template for creating a new Nautobot App that extends the capabilities of the Nautobot Single Source of Truth (SSoT) App. The [Nautobot SSoT App](https://github.com/nautobot/nautobot-app-ssot) facilitates integration and data synchronization between various "source of truth" (SoT) systems, with Nautobot acting as a central clearinghouse for data.
+- [`nautobot-app-chatops`](./nautobot-app-chatops) - A template for creating a new Nautobot App that extends the capabilities of the Nautobot ChatOps App. The [Nautobot ChatOps App](https://github.com/nautobot/nautobot-app-chatops) provides a multi-chat-vendor framework for developing chat bots for Slack, Microsoft Teams, Cisco WebEx, & Mattermost.
+
+## Usage with Cookiecutter
+
+It's possible to use Cookiecutter directly without installing templates locally. To do so, set up your environment first.
+
+Pre-requisites:
+
+- Python with pip.
+
+```shell
+pip install cookiecutter
+mkdir outputs
+```
+
+Then run the following command:
+
+```shell
+cookiecutter \
+  --output-dir=./outputs \
+  --directory=nautobot-app \
+  https://github.com/nautobot/cookiecutter-nautobot-app
+```
+
+## Usage with Cruft
+
+**[cruft](https://pypi.org/project/cruft/)** allows you to maintain all the
+necessary boilerplate for packaging and building projects separate from the
+code you intentionally write. Fully compatible with existing Cookiecutter templates.
+
+Its easy to create and updating projects as the template changes overtime.
+
+Pre-requisites:
+
+- Python with pip.
+
+```shell
+pip install cruft
+mkdir outputs
+```
+
+Then run the following command:
+
+```shell
+cookiecutter \
+  --output-dir=./outputs \
+  https://github.com/nautobot/cookiecutter-nautobot-app
+
+
+# Create a new project from cookiecutter branch my_branch
+cruft create \
+  --output-dir=./outputs \
+  --directory=nautobot-app \
+  --checkout=my_branch \
+  https://github.com/nautobot/cookiecutter-nautobot-app
+
+
+# Create a new project from a local cookiecutter template
+cruft \
+  --output-dir=./outputs \
+  --checkout=my_branch \
+  /path/to/local/cookiecutter-nautobot-app
+
+# Update an existing project with the latest template changes
+cruft update
+
+# Update Variables in an existing project
+cruft update --variables-to-update '{ "use_some_feature" : "yes" }'
+```
