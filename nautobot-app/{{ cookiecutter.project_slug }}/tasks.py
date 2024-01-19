@@ -72,10 +72,11 @@ def _is_compose_included(context, name):
 
 def _await_healthy_service(context, service):
     container_id = docker_compose(context, f"ps -q -- {service}", pty=False, echo=False, hide=True).stdout.strip()
-    _await_healthy_container(context, container_id)
+    _await_healthy_container(context, container_id, service=service)
 
 
-def _await_healthy_container(context, container_id):
+def _await_healthy_container(context, container_id, service=""):
+    sec = 0
     while True:
         result = context.run(
             "docker inspect --format='{% raw %}{{.State.Health.Status}}{% endraw %}' " + container_id,
@@ -85,8 +86,10 @@ def _await_healthy_container(context, container_id):
         )
         if result.stdout.strip() == "healthy":
             break
-        print(f"Waiting for `{container_id}` container to become healthy ...")
+        sec += 1
+        minutes, seconds = divmod(sec, 60)
         sleep(1)
+        print(f"Waiting for `{container_id}` {service ' ' if service else ''}container to become healthy ... {minutes:02d}:{seconds:02d}")
 
 
 def task(function=None, *args, **kwargs):
@@ -173,9 +176,10 @@ def run_command(context, command, **kwargs):
     help={
         "force_rm": "Always remove intermediate containers",
         "cache": "Whether to use Docker's cache when building the image (defaults to enabled)",
+        "pull": "Whether to pull Docker images when building the image. (Default: disabled)",
     }
 )
-def build(context, force_rm=False, cache=True):
+def build(context, force_rm=True, cache=True, pull=False):
     """Build Nautobot docker image."""
     command = "build"
 
@@ -183,6 +187,8 @@ def build(context, force_rm=False, cache=True):
         command += " --no-cache"
     if force_rm:
         command += " --force-rm"
+    if pull:
+        command += " --pull"
 
     print(f"Building Nautobot with Python {context.{{ cookiecutter.app_name }}.python_ver}...")
     docker_compose(context, command)
@@ -347,10 +353,18 @@ def shell_plus(context):
     run_command(context, command)
 
 
-@task
-def cli(context):
-    """Launch a bash shell inside the Nautobot container."""
-    run_command(context, "bash")
+@task(
+    help={
+        "service": "Name of the service to shell into",
+        "root": "Launch shell as root",
+        "command": "Command to run in container. (Default: bash)",
+    }
+)
+def cli(context, service="nautobot", root=False, command="bash"):
+    """Launch a bash shell inside the running Nautobot (or other) Docker container."""
+    context.nautobot.local = False
+
+    run_command(context, command, service=service, pty=True, root=root)
 
 
 @task(
@@ -535,6 +549,31 @@ def import_db(context, db_name="", input_file="dump.sql"):
 
 @task(
     help={
+        "input-file": "Tar file containing media files from backup. This can be generated using `invoke backup-media` (default: `media.tgz`).",
+    }
+)
+def import_media(context, input_file="media.tgz"):
+    """Start Nautobot containers and restore the media files into `nautobot` container."""
+    # Check if nautobot is running, no need to start another nautobot container to run a command
+    docker_compose_status = "ps --services --filter status=running"
+    results = docker_compose(context, docker_compose_status, hide="out")
+    if "nautobot" not in results.stdout:
+        start(context, "nautobot")
+    _await_healthy_service(context, "nautobot")
+    command = ["exec -- nautobot sh -c '"]
+    command += [ "tar", "-xzf", "-", "-C", "/" ]
+    command += [
+        "'",
+        f"< '{input_file}'",
+    ]
+
+    docker_compose(context, " ".join(command), pty=False)
+
+    print("Media files import complete, all files are now available in Nautobot container.")
+
+
+@task(
+    help={
         "db-name": "Database name to backup (default: Nautobot database)",
         "output-file": "Ouput file, overwrite if exists (default: `dump.sql`)",
         "readable": "Flag to dump database data in more readable format (default: `True`)",
@@ -542,7 +581,11 @@ def import_db(context, db_name="", input_file="dump.sql"):
 )
 def backup_db(context, db_name="", output_file="dump.sql", readable=True):
     """Dump database into `output_file` file from `db` container."""
-    start(context, "db")
+    # Check if db is running, no need to start another db container to run a command
+    docker_compose_status = "ps --services --filter status=running"
+    results = docker_compose(context, docker_compose_status, hide="out")
+    if "db" not in results.stdout:
+        start(context, "db")
     _await_healthy_service(context, "db")
 
     command = ["exec -- db sh -c '"]
@@ -577,6 +620,38 @@ def backup_db(context, db_name="", output_file="dump.sql", readable=True):
     print(output_file)
     print("You can import this database backup with the following command:")
     print(f"invoke import-db --input-file '{output_file}'")
+    print(50 * "=")
+
+
+@task(
+    help={
+        "media-dir": "Media directory to backup (default: `/opt/nautobot/media`)",
+        "output-file": "Ouput file, overwrite if exists (default: `media.tgz`)",
+    }
+)
+def backup_media(context, media_dir="/opt/nautobot/media", output_file="media.tgz"):
+    """Dump all media files into `output_file` file from `nautobot` container."""
+    # Check if nautobot is running, no need to start another nautobot container to run a command
+    docker_compose_status = "ps --services --filter status=running"
+    results = docker_compose(context, docker_compose_status, hide="out")
+    if "nautobot" not in results.stdout:
+        start(context, "nautobot")
+    _await_healthy_service(context, "nautobot")
+
+    command = ["exec -- db sh -c '"]
+    command += [ "tar", "-czf", "-", media_dir ]
+    command += [
+        "'",
+        f"> '{output_file}'",
+    ]
+
+    docker_compose(context, " ".join(command), pty=False)
+
+    print(50 * "=")
+    print("The media files backup has been successfully completed and saved to the following file:")
+    print(output_file)
+    print("You can import this media files backup with the following command:")
+    print(f"invoke import-media --input-file '{output_file}'")
     print(50 * "=")
 
 

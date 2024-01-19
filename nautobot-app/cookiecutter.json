@@ -19,5 +19,8 @@
         "Not open source"
     ],
     "docs_base_url": "https://docs.nautobot.com",
-    "docs_app_url": "{{ cookiecutter.docs_base_url }}/projects/{{ cookiecutter.app_slug }}/en/latest"
+    "docs_app_url": "{{ cookiecutter.docs_base_url }}/projects/{{ cookiecutter.app_slug }}/en/latest",
+    "postgres_version": "13-alpine",
+    "backup_filename_startswith": "nautobot-{{ cookiecutter.app_slug }}",
+    "backup_dir_on_localhost": ".backups"
 }

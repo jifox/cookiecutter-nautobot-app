@@ -2,6 +2,7 @@
 development/Dockerfile
 development/docker-compose*.yml
 development/*.env
+development/trusted-certs/.gitignore
 *.env
 environments/
 

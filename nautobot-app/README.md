@@ -18,6 +18,9 @@ To use this template, follow the [instructions in the README](../README.md).
 
 Once the cookie is generated the next step is to start developing the App! If you're not familiar with the development environment provided by this cookie, we recommend checking out the Development Environment guide located in the documentation tree at `docs/dev/dev_environment.md`.
 
+Don't forget to add your trusted certificates to `development/trusted_certs/*.crt` if you're using a self-signed certificate for your Nautobot instance.
+
+
 ## Template Inputs
 
 The following table lists the inputs that you will be prompted for when generating a new cookie from this template.
@@ -42,3 +45,4 @@ The following table lists the inputs that you will be prompted for when generati
 | **Select open_source_license** | Determine if project is open source or not |
 | **docs_base_url**| The main URL where the project documentation will be hosted. For open source projects use the default (`https://docs.nautobot.com`). |
 | **docs_app_url**| The full URL for documentation hosting. You might want to shorten the project alias, for example `https://docs.nautobot.com/projects/data-validation/en/latest` instead of `https://docs.nautobot.com/projects/nautobot-plugin-data-validation/en/latest`. Make sure there's no trailing `/`! |
+| **backup_filename_startswith** | The filename prefix of the database backup file to use for backing up the database. |

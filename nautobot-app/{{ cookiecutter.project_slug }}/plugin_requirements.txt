@@ -1,0 +1,12 @@
+# Standard Nautobot Plugins for all Nautobot instances
+# During upgrade, all plugins using a model must be active and installed
+# else the plugiins models will not be migrated.
+django-allow-cidr
+django-auth-ldap
+django-debug-toolbar
+nautobot-device-onboarding
+nautobot-plugin-nornir
+nautobot-data-validation-engine
+nautobot-ssot
+git+https://github.com/jifox/napalm-h3c-cw7-ssh.git@jifox-hpe-5700-cw-71
+nautobot-secrets-providers[all]

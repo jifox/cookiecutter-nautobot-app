@@ -6,7 +6,7 @@ services:
     environment:
       - "NAUTOBOT_DB_ENGINE=django.db.backends.postgresql"
   db:
-    image: "postgres:13-alpine"
+    image: "postgres:{{ cookiecutter.postgres_version }}"
     command:
       - "-c"
       - "max_connections=200"

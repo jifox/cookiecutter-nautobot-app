@@ -18,7 +18,6 @@ The following templates are available:
 - [`nautobot-app-ssot`](./nautobot-app-ssot) - A template for creating a new Nautobot App that extends the capabilities of the Nautobot Single Source of Truth (SSoT) App. The [Nautobot SSoT App](https://github.com/nautobot/nautobot-app-ssot) facilitates integration and data synchronization between various "source of truth" (SoT) systems, with Nautobot acting as a central clearinghouse for data.
 - [`nautobot-app-chatops`](./nautobot-app-chatops) - A template for creating a new Nautobot App that extends the capabilities of the Nautobot ChatOps App. The [Nautobot ChatOps App](https://github.com/nautobot/nautobot-app-chatops) provides a multi-chat-vendor framework for developing chat bots for Slack, Microsoft Teams, Cisco WebEx, & Mattermost.
 
-
 ## Usage with Cookiecutter
 
 It's possible to use Cookiecutter directly without installing templates locally. To do so, set up your environment first.
@@ -39,4 +38,50 @@ cookiecutter \
   --output-dir=./outputs \
   --directory=nautobot-app \
   https://github.com/nautobot/cookiecutter-nautobot-app
+```
+
+## Usage with Cruft
+
+**[cruft](https://pypi.org/project/cruft/)** allows you to maintain all the
+necessary boilerplate for packaging and building projects separate from the
+code you intentionally write. Fully compatible with existing Cookiecutter templates.
+
+Its easy to create and updating projects as the template changes overtime.
+
+Pre-requisites:
+
+- Python with pip.
+
+```shell
+pip install cruft
+mkdir outputs
+```
+
+Then run the following command:
+
+```shell
+cookiecutter \
+  --output-dir=./outputs \
+  https://github.com/nautobot/cookiecutter-nautobot-app
+
+
+# Create a new project from cookiecutter branch my_branch
+cruft create \
+  --output-dir=./outputs \
+  --directory=nautobot-app \
+  --checkout=my_branch \
+  https://github.com/nautobot/cookiecutter-nautobot-app
+
+
+# Create a new project from a local cookiecutter template
+cruft \
+  --output-dir=./outputs \
+  --checkout=my_branch \
+  /path/to/local/cookiecutter-nautobot-app
+
+# Update an existing project with the latest template changes
+cruft update
+
+# Update Variables in an existing project
+cruft update --variables-to-update '{ "use_some_feature" : "yes" }'
 ```
