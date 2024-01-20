@@ -137,4 +137,4 @@ poetry run invoke import-db --input-file="${tmp_dir}/backups/${restore_subdir}/$
 poetry run invoke import-media --input-file="${tmp_dir}/backups/${restore_subdir}/${BACKUP_FILENAME_STARTSWITH}.media.tgz"
 
 popd || exit
-echo "Finished restore"
+echo "Finished restore - ${latest_backup}"
