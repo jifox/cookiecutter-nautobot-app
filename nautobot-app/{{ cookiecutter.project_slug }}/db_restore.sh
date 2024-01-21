@@ -96,11 +96,7 @@ else
   # find latest backup file in ${REMOTE_RESTORE_DIR} (must be in this directory and must be a .tgz file)
   latest_backup=$(find "${LOCAL_BACKUP_DATA_DIR}" -maxdepth 1 -type f -name "*.tgz" | sort | tail -n 1 | tr -cd [:print:])
 fi
-# check if latest_backup exists
-if [ ! -f "${latest_backup}" ]; then
-  echo "ERROR: No backup file found in ${REMOTE_RESTORE_DIR}"
-  exit 1
-fi
+
 
 # Allow restore of backup files with different Sources (e.g. nautobot-porduction, nautobot-shut-no-shut)
 BACKUP_FILENAME_STARTSWITH=$(basename "${latest_backup}" | cut -d"." -f1 )
