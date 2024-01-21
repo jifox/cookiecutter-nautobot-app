@@ -91,7 +91,7 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 
 # Determine the latest backup file and copy it to LOCAL_BACKUP_DATA_DIR
 if [ "${ENABLE_SCP_COPY}" == "True" ]; then
-  latest_backup=$(ssh -t "${REMOTE_USERNAME}@${REMOTE_BACKUP_HOST}" "ls -tr ${REMOTE_RESTORE_DIR}/ | tail -n 1 | tr -cd [:print:]")
+  latest_backup=$(ssh -t "${REMOTE_USERNAME}@${REMOTE_BACKUP_HOST}" "ls -tr ${REMOTE_RESTORE_DIR}/*.tgz | tail -n 1 | tr -cd [:print:]")
 else
   # find latest backup file in ${REMOTE_RESTORE_DIR} (must be in this directory and must be a .tgz file)
   latest_backup=$(find "${LOCAL_BACKUP_DATA_DIR}" -maxdepth 1 -type f -name "*.tgz" | sort | tail -n 1 | tr -cd [:print:])
