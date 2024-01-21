@@ -42,7 +42,7 @@ RUN which poetry || curl -sSL https://install.python-poetry.org | python3 - && \
 COPY ./plugin_bin_requirements.txt /opt/nautobot/
 RUN apt-get -y update && \
     apt-get install -y $(grep -o ^[^#][[:alnum:].-]* "/opt/nautobot/plugin_bin_requirements.txt") && \
-    && rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/*
 
 # Install trusted certificates after installing bin packages
 COPY development/trusted_certs/README.md development/trusted_certs/trusted_certs/*.crt /usr/local/share/ca-certificates/
