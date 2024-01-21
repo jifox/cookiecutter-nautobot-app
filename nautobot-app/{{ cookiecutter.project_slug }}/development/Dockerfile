@@ -45,7 +45,7 @@ RUN apt-get -y update && \
     rm -rf /var/lib/apt/lists/*
 
 # Install trusted certificates after installing bin packages
-COPY development/trusted_certs/README.md development/trusted_certs/trusted_certs/*.crt /usr/local/share/ca-certificates/
+COPY ./development/trusted_certs/README.md development/trusted_certs/*.crt /usr/local/share/ca-certificates/
 RUN update-ca-certificates
 
 # Directory to install plugin from sources
