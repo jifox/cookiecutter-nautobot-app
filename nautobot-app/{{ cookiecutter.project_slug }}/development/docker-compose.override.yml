@@ -11,9 +11,9 @@ services:
       - "${PWD}/development/nautobot_config.py:/opt/nautobot/nautobot_config.py"
     depends_on:
       db:
-        condition: service_healthy
+        condition: "service_healthy"
       redis:
-        condition: service_started
+        condition: "service_started"
   docs:
     depends_on:
       nautobot:
