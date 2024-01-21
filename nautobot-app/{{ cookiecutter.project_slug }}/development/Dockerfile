@@ -39,9 +39,19 @@ RUN which poetry || curl -sSL https://install.python-poetry.org | python3 - && \
 # --> Start safe to modify section
 
 # Uncomment the lines below if you are apt-installing any package.
-# RUN apt-get -y update && apt-get -y install \
-#     libldap2-dev \
-#     && rm -rf /var/lib/apt/lists/*
+COPY ./plugin_bin_requirements.txt /opt/nautobot/
+RUN apt-get -y update && \
+    apt-get install -y $(grep -o ^[^#][[:alnum:].-]* "/opt/nautobot/plugin_bin_requirements.txt") && \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install trusted certificates after installing bin packages
+COPY development/trusted_certs/README.md development/trusted_certs/trusted_certs/*.crt /usr/local/share/ca-certificates/
+RUN update-ca-certificates
+
+# Directory to install plugin from sources
+RUN mkdir /opt/plugin-sources \
+    && chmod 777 /opt/plugin-sources
+
 
 # --> Stop safe to modify section
 # -------------------------------------------------------------------------------------
@@ -66,6 +76,10 @@ RUN pip show nautobot | grep "^Version: " | sed -e 's/Version: /nautobot==/' > c
 RUN poetry export -f requirements.txt --without-hashes --extras all --output poetry_freeze_base.txt
 RUN poetry export -f requirements.txt --without-hashes --extras all --with dev --output poetry_freeze_all.txt
 RUN sort poetry_freeze_base.txt poetry_freeze_all.txt | uniq -u > poetry_freeze_dev.txt
+
+# Install plugin requirements before restoring dependencies frozen from Poetry
+COPY ./plugin_requirements.txt /opt/nautobot/
+RUN pip install --no-warn-script-location -r /opt/nautobot/plugin_requirements.txt
 
 # Install all local project as editable, constrained on Nautobot version, to get any additional
 #   direct dependencies of the app
