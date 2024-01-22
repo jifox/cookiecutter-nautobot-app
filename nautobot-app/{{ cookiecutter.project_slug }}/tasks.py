@@ -569,7 +569,7 @@ def import_media(context, input_file="media.tgz"):
     ]
 
     docker_compose(context, " ".join(command), pty=False)
-
+    stop(context, "nautobot")
     print("Media import complete, all files are now available in Nautobot container.")
 
 
