@@ -118,7 +118,7 @@ echo "Created temporary directory: ${tmp_dir}"
 
 # Move the backup file to temporary directory
 if [ "${ENABLE_SCP_COPY}" == "True" ]; then
-  scp "${REMOTE_USERNAME}@${REMOTE_BACKUP_HOST}":"${REMOTE_RESTORE_DIR}/${latest_backup}" "${tmp_dir}/"
+  scp "${REMOTE_USERNAME}@${REMOTE_BACKUP_HOST}":"${latest_backup}" "${tmp_dir}/"
 else
   cp "${latest_backup}" "${tmp_dir}"
 fi
