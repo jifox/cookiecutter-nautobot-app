@@ -151,7 +151,7 @@ def docker_compose(context, command, **kwargs):
     return context.run(compose_command, env=build_env, **kwargs)
 
 
-def run_command(context, command, **kwargs):
+def run_command(context, command, service="nautobot", **kwargs):
     """Wrapper to run a command locally or inside the nautobot container."""
     if is_truthy(context.{{ cookiecutter.app_name }}.local):
         context.run(command, **kwargs)
@@ -159,10 +159,11 @@ def run_command(context, command, **kwargs):
         # Check if nautobot is running, no need to start another nautobot container to run a command
         docker_compose_status = "ps --services --filter status=running"
         results = docker_compose(context, docker_compose_status, hide="out")
-        if "nautobot" in results.stdout:
-            compose_command = f"exec nautobot {command}"
+        root = kwargs.pop("root", False)
+        if service in results.stdout:
+            compose_command = f"exec {'--user=root ' if root else ''}{service} {command}"
         else:
-            compose_command = f"run --rm --entrypoint '{command}' nautobot"
+            compose_command = f"run {'--user=root ' if root else ''}--rm --entrypoint '{command}' {service}"
 
         pty = kwargs.pop("pty", True)
 
