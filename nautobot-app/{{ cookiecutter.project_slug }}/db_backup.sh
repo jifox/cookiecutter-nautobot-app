@@ -159,6 +159,7 @@ if [ "${ENABLE_SCP_COPY}" == "True" ]; then
 else
   # Move the backup file to final backup destination
   mv "${temp_tar_name}" "${final_backup_name}"
+  temp_tar_name="${final_backup_name}"
 fi
 
 popd || exit
