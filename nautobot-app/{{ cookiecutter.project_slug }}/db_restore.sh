@@ -91,19 +91,18 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 
 # Determine the latest backup file and copy it to LOCAL_BACKUP_DATA_DIR
 if [ "${ENABLE_SCP_COPY}" == "True" ]; then
-  echo 
   latest_backup=$(ssh -t "${REMOTE_USERNAME}@${REMOTE_BACKUP_HOST}" "ls -tr ${REMOTE_RESTORE_DIR}/*.tgz | tail -n 1 | tr -cd [:print:]")
 else
   # find latest backup file in ${REMOTE_RESTORE_DIR} (must be in this directory and must be a .tgz file)
   latest_backup=$(find "${LOCAL_BACKUP_DATA_DIR}" -maxdepth 1 -type f -name "*.tgz" | sort | tail -n 1 | tr -cd [:print:])
 fi
-
+echo "    Latest backup file:          '${latest_backup}'"
 
 # Allow restore of backup files with different Sources (e.g. nautobot-porduction, nautobot-shut-no-shut)
 BACKUP_FILENAME_STARTSWITH=$(basename "${latest_backup}" | cut -d"." -f1 )
 restore_subdir=$(basename "${latest_backup}" | cut -d"." -f2)
-echo "    Restoring backup file: '${latest_backup}'"
-echo "    Subdir: '${restore_subdir}'"
+echo "    Restoring backup file:       '${latest_backup}'"
+echo "    Subdir:                      '${restore_subdir}'"
 echo "    Backup filename starts with: '${BACKUP_FILENAME_STARTSWITH}'"
 
 
