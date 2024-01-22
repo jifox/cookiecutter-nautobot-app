@@ -362,7 +362,7 @@ def shell_plus(context):
 )
 def cli(context, service="nautobot", root=False, command="bash"):
     """Launch a bash shell inside the running Nautobot (or other) Docker container."""
-    context.nautobot.local = False
+    context.{{ cookiecutter.app_name }}.local = False
 
     run_command(context, command, service=service, pty=True, root=root)
 
