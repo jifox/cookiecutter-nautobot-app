@@ -50,6 +50,7 @@ Congratulations! Your cookie has now been baked. It is located at /tmp/nautobot-
 
 * poetry lock
 * cp development/creds.example.env development/creds.env
+* poetry install
 * poetry shell
 * invoke makemigrations
 * black . # this will ensure all python files are formatted correctly, may require `sudo chown -R <my local username> ./` as migrations may be owned by root
@@ -166,6 +167,7 @@ Congratulations! Your cookie has now been baked. It is located at /tmp/nautobot-
 
 * poetry lock
 * cp development/creds.example.env development/creds.env
+* poetry install
 * poetry shell
 * invoke makemigrations
 * black . # this will ensure all python files are formatted correctly, may require `sudo chown -R <my local username> ./` as migrations may be owned by root
@@ -176,5 +178,5 @@ The file `creds.env` will be ignored by git and can be used to override default 
 The cookiecutter CLI tool uses the default branch when using the above example command, to use a different branch, commit, or tag the `--checkout` command line argument can be used.
 
 - `--checkout=main` will bake the cookie against the main branch
-- `--checkout=v1.0.0` will bake the cookie against the `v1.0.0` tag
+- `--checkout=nautobot-app-v1.0.0` will bake the cookie against the `nautobot-app-v1.0.0` tag
 - `--checkout=6769dee` will bake the cookie against the `6769dee` commit

@@ -12,6 +12,7 @@ Congratulations! Your cookie has now been baked. It is located at {_PROJECT_PATH
 
 * poetry lock
 * cp development/creds.example.env development/creds.env
+* poetry install
 * poetry shell
 * invoke makemigrations
 * black . # this will ensure all python files are formatted correctly, may require `sudo chown -R <my local username> ./` as migrations may be owned by root
@@ -68,7 +69,7 @@ if __name__ == "__main__":
             (_ADDONS_PATH / folder).rmdir()
 
     # Persist the baked cookie parameters in-repo for future usage as a replay file or for the drift management.
-    cookie = {{cookiecutter}}
+    cookie = {{ cookiecutter }}
     (_PROJECT_PATH / ".cookiecutter.json").write_text(
         json.dumps({"cookiecutter": cookie}, indent=4) + "\n", encoding="utf-8"
     )
