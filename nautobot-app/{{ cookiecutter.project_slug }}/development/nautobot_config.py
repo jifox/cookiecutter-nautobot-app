@@ -181,8 +181,13 @@ SHORT_DATETIME_FORMAT = os.getenv("NAUTOBOT_SHORT_DATETIME_FORMAT", "d.m.Y H:i")
 #
 
 # Enable installed Apps. Add the name of each App to the list.
-PLUGINS = ["{{ cookiecutter.app_name }}"]
-PLUGINS_CONFIG = {}
+if "PLUGINS" not in locals():
+    PLUGINS = ["{{ cookiecutter.app_name }}"]
+else:
+    if "{{ cookiecutter.app_name }}" not in PLUGINS:
+        PLUGINS.append("{{ cookiecutter.app_name }}")
+if "PLUGINS_CONFIG" not in locals():
+    PLUGINS_CONFIG = {}
 
 
 # Apps configuration settings. These settings are used by various Apps that the user may have installed.
@@ -432,6 +437,7 @@ SECRETS_PROVIDERS_ENABLED = is_truthy(os.getenv("NAUTOBOT_SECRETS_PROVIDERS_ENAB
 if SECRETS_PROVIDERS_ENABLED:
     if "nautobot_secrets_providers" not in PLUGINS:
         PLUGINS.append("nautobot_secrets_providers")
+        print("INFO: nautobot_secrets_providers plugin enabled.")  # noqa: T001
 
     if "nautobot_secrets_providers" not in PLUGINS_CONFIG or "thycotic" not in PLUGINS_CONFIG.get(
         "nautobot_secrets_providers"
@@ -462,8 +468,10 @@ if SECRETS_PROVIDERS_ENABLED:
 
         if "nautobot_secrets_providers" in PLUGINS_CONFIG:
             PLUGINS_CONFIG.get("nautobot_secrets_providers").update(thycotic_seetings)  # type: ignore
+            print("INFO: nautobot_secrets_providers plugin updated.")  # noqa: T001
         else:
             PLUGINS_CONFIG.update({"nautobot_secrets_providers": thycotic_seetings})
+            print("INFO: nautobot_secrets_providers plugin configured.")
 
 
 #
