@@ -176,18 +176,30 @@ DATETIME_FORMAT = os.getenv("NAUTOBOT_DATETIME_FORMAT", "N j, Y g:i a")
 SHORT_DATETIME_FORMAT = os.getenv("NAUTOBOT_SHORT_DATETIME_FORMAT", "d.m.Y H:i")
 
 
-#
-# Apps
-#
-
-# Enable installed Apps. Add the name of each App to the list.
+# Initialize or update PLUGINS and PLUGINS_CONFIG settings.
+# Take init account that PLUGINS and PLUGINS_CONFIG may be defined
+# earlier in the nautobot_config.py file.
 if "PLUGINS" not in locals():
-    PLUGINS = ["{{ cookiecutter.app_name }}"]
-else:
-    if "{{ cookiecutter.app_name }}" not in PLUGINS:
-        PLUGINS.append("{{ cookiecutter.app_name }}")
+    PLUGINS = []
 if "PLUGINS_CONFIG" not in locals():
     PLUGINS_CONFIG = {}
+
+
+#
+# App: {{ cookiecutter.verbose_name }}
+#
+{{ cookiecutter.app_name | upper | replace("-", "_") }}_ENABLED = is_truthy(os.getenv("NAUTOBOT_{{ cookiecutter.app_name | upper | replace("-", "_") }}_ENABLED", False))
+if {{ cookiecutter.app_name | upper | replace("-", "_") }}_ENABLED:
+    if "{{ cookiecutter.app_name }}" not in PLUGINS:
+        PLUGINS.append("{{ cookiecutter.app_name }}")
+
+    if "{{ cookiecutter.app_name }}" not in PLUGINS_CONFIG:
+        # Plugins configuration settings. These settings are used by various plugins that the user may have installed.
+        # Each key in the dictionary is the name of an installed plugin and its value is a dictionary of settings.
+        PLUGINS_CONFIG = {"{{ cookiecutter.app_name }}": {
+            "foo": "bar",
+            "buzz": "bazz"
+        }}
 
 
 # Apps configuration settings. These settings are used by various Apps that the user may have installed.
