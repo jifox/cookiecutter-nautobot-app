@@ -19,9 +19,6 @@ from time import sleep
 from invoke.collection import Collection
 from invoke.tasks import task as invoke_task
 
-# Base directory path from this file.
-BASE_DIR = os.path.join(os.path.dirname(__file__))
-
 
 def is_truthy(arg):
     """Convert "truthy" strings into Booleans.

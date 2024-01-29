@@ -161,9 +161,9 @@ def run_command(context, command, service="nautobot", **kwargs):
         results = docker_compose(context, docker_compose_status, hide="out")
         root = kwargs.pop("root", False)
         if service in results.stdout:
-            compose_command = f"exec {'--user=root ' if root else ''}{service} {command}"
+            compose_command = f"exec {'--user=root ' if root else ''}{service} '{command}'"
         else:
-            compose_command = f"run {'--user=root ' if root else ''}--rm --entrypoint '{command}' {service}"
+            compose_command = f"run {'--user=root ' if root else ''}--rm --entrypoint '' {service} '{command}'"
 
         pty = kwargs.pop("pty", True)
 
