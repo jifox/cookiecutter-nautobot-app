@@ -163,7 +163,7 @@ def run_command(context, command, service="nautobot", **kwargs):
         if service in results.stdout:
             compose_command = f"exec {'--user=root ' if root else ''}{service} '{command}'"
         else:
-            compose_command = f"run {'--user=root ' if root else ''}--rm --entrypoint '' {service} '{command}'"
+            compose_command = f"run {'--user=root ' if root else ''}--rm --entrypoint '{command}' {service}"
 
         pty = kwargs.pop("pty", True)
 

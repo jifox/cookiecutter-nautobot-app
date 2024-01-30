@@ -433,7 +433,8 @@ if DEVICE_ONBOARDING_ENABLED:
                     "skip_manufacturer_on_update": True,
                     # "platform_map": {
                     #     <Netmiko Platform>: <Nautobot Slug>
-                    # },
+                    #
+                    },
                 }
             }
         )
