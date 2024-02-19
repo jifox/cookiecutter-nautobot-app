@@ -63,6 +63,14 @@ RUN mkdir /opt/plugin-sources \
 WORKDIR /source
 COPY . /source
 
+# Allow needen algorithms for connection to switches
+RUN mkdir -p /opt/nautobot/.ssh \
+    && echo "Host *" >> /opt/nautobot/.ssh/config \
+    && echo "    KexAlgorithms +diffie-hellman-group1-sha1,diffie-hellman-group14-sha1" >> /root/.ssh/config \
+    && echo "    Ciphers +aes128-cbc,3des-cbc" >> /opt/nautobot/.ssh/config \
+    && chmod 400 /opt/nautobot/.ssh/config \
+    && chown nautobot:nautobot /opt/nautobot/.ssh/config
+
 # Get container's installed Nautobot version as a forced constraint
 # NAUTOBOT_VER may be a branch name and not a published release therefor we need to get the installed version
 #  so pip can use it to recognize local constraints.
