@@ -66,7 +66,7 @@ COPY . /source
 # Allow needen algorithms for connection to switches
 RUN mkdir -p /opt/nautobot/.ssh \
     && echo "Host *" >> /opt/nautobot/.ssh/config \
-    && echo "    KexAlgorithms +diffie-hellman-group1-sha1,diffie-hellman-group14-sha1" >> /root/.ssh/config \
+    && echo "    KexAlgorithms +diffie-hellman-group1-sha1,diffie-hellman-group14-sha1" >> /opt/nautobot/.ssh/config \
     && echo "    Ciphers +aes128-cbc,3des-cbc" >> /opt/nautobot/.ssh/config \
     && chmod 400 /opt/nautobot/.ssh/config \
     && chown nautobot:nautobot /opt/nautobot/.ssh/config
