@@ -1,5 +1,6 @@
 """Nautobot development configuration file."""
 import os
+import secrets
 import sys
 
 from nautobot.core.settings import *  # noqa: F403  # pylint: disable=wildcard-import,unused-wildcard-import
@@ -174,16 +175,32 @@ SHORT_TIME_FORMAT = os.getenv("NAUTOBOT_SHORT_TIME_FORMAT", "H:i:s")
 DATETIME_FORMAT = os.getenv("NAUTOBOT_DATETIME_FORMAT", "N j, Y g:i a")
 SHORT_DATETIME_FORMAT = os.getenv("NAUTOBOT_SHORT_DATETIME_FORMAT", "d.m.Y H:i")
 
+# Initialize or update PLUGINS and PLUGINS_CONFIG settings.
+# Take into account that PLUGINS and PLUGINS_CONFIG may be defined elsewhere
+if "PLUGINS" not in locals():
+    PLUGINS = []
+if "PLUGINS_CONFIG" not in locals():
+    PLUGINS_CONFIG = {}
+
 
 #
-# Apps
+# App: {{ cookiecutter.verbose_name }}
 #
+{{ cookiecutter.app_name | upper }}_ENABLED = is_truthy(os.getenv("NAUTOBOT_{{ cookiecutter.app_name | upper }}_ENABLED", False))
+if {{ cookiecutter.app_name | upper }}_ENABLED:
+    if "{{ cookiecutter.app_name }}" not in PLUGINS:
+        # Enable installed plugins. Add the name of each plugin to the list.
+        PLUGINS.append("{{ cookiecutter.app_name }}")
 
-# Enable installed Apps. Add the name of each App to the list.
-PLUGINS = ["{{ cookiecutter.app_name }}"]
-PLUGINS_CONFIG = {}
-
-
+    if "{{ cookiecutter.app_name }}" not in PLUGINS_CONFIG:
+        # Plugins configuration settings. These settings are used by various plugins that the user may have installed.
+        # Each key in the dictionary is the name of an installed plugin and its value is a dictionary of settings.
+        PLUGINS_CONFIG.update(
+            {
+                "{{ cookiecutter.app_name }}": {
+                }
+            }
+        )
 # Apps configuration settings. These settings are used by various Apps that the user may have installed.
 # Each key in the dictionary is the name of an installed App and its value is a dictionary of settings.
 # PLUGINS_CONFIG = {
@@ -202,14 +219,14 @@ PLUGINS_CONFIG = {}
 
 DATA_VALIDATION_ENGINE_ENABLED = is_truthy(os.getenv("NAUTOBOT_DATA_VALIDATION_ENGINE_ENABLED", False))
 if DATA_VALIDATION_ENGINE_ENABLED:
-    if "nautobot_data_validation_engine" not in PLUGINS:
+    if "nautobot_data_validation_engine" not in PLUGINS_CONFIG:  # type: ignore
         # Enable installed plugins. Add the name of each plugin to the list.
         PLUGINS.append("nautobot_data_validation_engine")
 
-    if "nautobot_data_validation_engine" not in PLUGINS_CONFIG:
+    if "nautobot_data_validation_engine" not in PLUGINS_CONFIG:  # type: ignore
         # Plugins configuration settings. These settings are used by various plugins that the user may have installed.
         # Each key in the dictionary is the name of an installed plugin and its value is a dictionary of settings.
-        PLUGINS_CONFIG.update(
+        PLUGINS_CONFIG.update(  # type: ignore
             {
                 "nautobot_data_validation_engine": {},
             }
@@ -228,10 +245,10 @@ if DEVICE_ONBOARDING_ENABLED:
         # Enable installed plugins. Add the name of each plugin to the list.
         PLUGINS.append("nautobot_device_onboarding")
 
-    if "nautobot_device_onboarding" not in PLUGINS_CONFIG:
+    if "nautobot_device_onboarding" not in PLUGINS_CONFIG:  # type: ignore
         # Plugins configuration settings. These settings are used by various plugins that the user may have installed.
         # Each key in the dictionary is the name of an installed plugin and its value is a dictionary of settings.
-        PLUGINS_CONFIG.update(
+        PLUGINS_CONFIG.update(  # type: ignore
             {
                 "nautobot_device_onboarding": {
                     "default_device_role_color": "0000FF",
@@ -388,10 +405,8 @@ if SSOT_ENABLED:
     if "nautobot_ssot" not in PLUGINS:
         PLUGINS.append("nautobot_ssot")
 
-    if "nautobot_ssot" not in PLUGINS_CONFIG:
-        PLUGINS_CONFIG.update({"nautobot_ssot": {
-            "hide_example_jobs": True
-        }})
+    if "nautobot_ssot" not in PLUGINS_CONFIG:  # type: ignore
+        PLUGINS_CONFIG.update({"nautobot_ssot": {"hide_example_jobs": True}})  # type: ignore
 
 
 #
@@ -405,18 +420,15 @@ if DEVICE_ONBOARDING_ENABLED:
     if "nautobot_device_onboarding" not in PLUGINS:
         PLUGINS.append("nautobot_device_onboarding")
 
-    if "nautobot_device_onboarding" not in PLUGINS_CONFIG:
-        PLUGINS_CONFIG.update(
+    if "nautobot_device_onboarding" not in PLUGINS_CONFIG:  # type: ignore
+        PLUGINS_CONFIG.update(  # type: ignore
             {
                 "nautobot_device_onboarding": {
                     "default_device_role_color": "0000FF",
                     "default_device_role": "edge-switch",
                     "skip_device_type_on_update": True,
                     "skip_manufacturer_on_update": True,
-                    # "platform_map": {
-                    #     <Netmiko Platform>: <Nautobot Slug>
-                    # },
-                }
+                },
             }
         )
 
@@ -431,8 +443,9 @@ SECRETS_PROVIDERS_ENABLED = is_truthy(os.getenv("NAUTOBOT_SECRETS_PROVIDERS_ENAB
 if SECRETS_PROVIDERS_ENABLED:
     if "nautobot_secrets_providers" not in PLUGINS:
         PLUGINS.append("nautobot_secrets_providers")
+        print("INFO: nautobot_secrets_providers plugin enabled.")  # noqa: T001
 
-    if "nautobot_secrets_providers" not in PLUGINS_CONFIG or "thycotic" not in PLUGINS_CONFIG.get(
+    if "nautobot_secrets_providers" not in PLUGINS_CONFIG or "thycotic" not in PLUGINS_CONFIG.get(  # type: ignore
         "nautobot_secrets_providers"
     ):  # type: ignore
         thycotic_seetings = {
@@ -459,7 +472,7 @@ if SECRETS_PROVIDERS_ENABLED:
             }
         }
 
-        if "nautobot_secrets_providers" in PLUGINS_CONFIG:
+        if "nautobot_secrets_providers" in PLUGINS_CONFIG:  # type: ignore
             PLUGINS_CONFIG.get("nautobot_secrets_providers").update(thycotic_seetings)  # type: ignore
         else:
             PLUGINS_CONFIG.update({"nautobot_secrets_providers": thycotic_seetings})
