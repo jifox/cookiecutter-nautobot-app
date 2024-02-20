@@ -88,7 +88,9 @@ def _await_healthy_container(context, container_id, service=""):
         sec += 1
         minutes, seconds = divmod(sec, 60)
         sleep(1)
-        print(f"Waiting for `{container_id}` {service + ' ' if service else ''}container to become healthy ... {minutes:02d}:{seconds:02d}")
+        print(
+            f"Waiting for `{container_id}` {service + ' ' if service else ''}container to become healthy ... {minutes:02d}:{seconds:02d}"
+        )
 
 
 def task(function=None, *args, **kwargs):
@@ -577,7 +579,7 @@ def import_media(context, input_file="media.tgz"):
         start(context, "nautobot")
     _await_healthy_service(context, "nautobot")
     command = ["exec -- nautobot sh -c '"]
-    command += [ "tar", "-xzf", "-", "-C", "/" ]
+    command += ["tar", "-xzf", "-", "-C", "/"]
     command += [
         "'",
         f"< '{input_file}'",
@@ -655,7 +657,7 @@ def backup_media(context, media_dir="/opt/nautobot/media", output_file="media.tg
     _await_healthy_service(context, "nautobot")
 
     command = ["exec -- nautobot sh -c '"]
-    command += [ "tar", "-czf", "-", media_dir ]
+    command += ["tar", "-czf", "-", media_dir]
     command += [
         "'",
         f"> '{output_file}'",
