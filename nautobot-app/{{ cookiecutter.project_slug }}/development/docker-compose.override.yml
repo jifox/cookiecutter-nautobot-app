@@ -11,9 +11,9 @@ services:
       - "${PWD}/development/nautobot_config.py:/opt/nautobot/nautobot_config.py"
     depends_on:
       db:
-        condition: "service_healthy"
+        condition: service_healthy
       redis:
-        condition: "service_started"
+        condition: service_started
   docs:
     depends_on:
       nautobot:
@@ -22,6 +22,7 @@ services:
     volumes:
       - "media_nautobot:/opt/nautobot/media"
       - "${PWD}/development/nautobot_config.py:/opt/nautobot/nautobot_config.py"
+      - "/etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt"
     depends_on:
       nautobot:
           condition: "service_healthy"
@@ -30,6 +31,7 @@ services:
     volumes:
       - "media_nautobot:/opt/nautobot/media"
       - "${PWD}/development/nautobot_config.py:/opt/nautobot/nautobot_config.py"
+      - "/etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt"
     depends_on:
       nautobot:
           condition: "service_healthy"
@@ -41,6 +43,7 @@ services:
     #   - "5432:5432"
     volumes:
       - "pgdata_nautobot:/var/lib/postgresql/data"
+      - "/etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt"
 
 
 # redis:
