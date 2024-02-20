@@ -23,8 +23,7 @@ from invoke.tasks import task as invoke_task
 def is_truthy(arg):
     """Convert "truthy" strings into Booleans.
 
-    Examples
-    --------
+    Examples:
         >>> is_truthy('yes')
         True
     Args:
@@ -115,7 +114,6 @@ def docker_compose(context, command, **kwargs):
     """Helper function for running a specific docker compose command with all appropriate parameters and environment.
 
     Args:
-    ----
         context (obj): Used to run specific commands
         command (str): Command string to append to the "docker compose ..." command, such as "build", "up", etc.
         **kwargs: Passed through to the context.run() call.
@@ -154,6 +152,11 @@ def docker_compose(context, command, **kwargs):
 def run_command(context, command, service="nautobot", **kwargs):
     """Wrapper to run a command locally or inside the nautobot container."""
     if is_truthy(context.{{ cookiecutter.app_name }}.local):
+        if "command_env" in kwargs:
+            kwargs["env"] = {
+                **kwargs.get("env", {}),
+                **kwargs.pop("command_env"),
+            }
         context.run(command, **kwargs)
     else:
         # Check if nautobot is running, no need to start another nautobot container to run a command
@@ -163,6 +166,11 @@ def run_command(context, command, service="nautobot", **kwargs):
         if service in results.stdout:
             compose_command = f"exec {'--user=root ' if root else ''}{service} {command}"
         else:
+            if "command_env" in kwargs:
+                command_env = kwargs.pop("command_env")
+            for key, value in command_env.items():
+                compose_command += f' --env="{key}={value}"'
+
             compose_command = f"run {'--user=root ' if root else ''}--rm --entrypoint '{command}' {service}"
 
         pty = kwargs.pop("pty", True)
@@ -336,15 +344,22 @@ def logs(context, service="", follow=False, tail=0):
 # ------------------------------------------------------------------------------
 # ACTIONS
 # ------------------------------------------------------------------------------
-@task(help={"file": "Python file to execute"})
-def nbshell(context, file=""):
+@task(
+    help={
+        "file": "Python file to execute",
+        "env": "Environment variables to pass to the command",
+        "plain": "Flag to run nbshell in plain mode (default: False)",
+    },
+)
+def nbshell(context, file="", env={}, plain=False):
     """Launch an interactive nbshell session."""
     command = [
         "nautobot-server",
         "nbshell",
+        "--plain" if plain else "",
         f"< '{file}'" if file else "",
     ]
-    run_command(context, " ".join(command), pty=not bool(file))
+    run_command(context, " ".join(command), pty=not bool(file), command_env=env)
 
 
 @task
@@ -786,7 +801,6 @@ def yamllint(context):
     """Run yamllint to validate formatting adheres to NTC defined YAML standards.
 
     Args:
-    ----
         context (obj): Used to run specific commands
     """
     command = "yamllint . --format standard"
@@ -877,8 +891,33 @@ def tests(context, failfast=False, keepdb=False, lint_only=False):
     pylint(context)
     print("Running mkdocs...")
     build_and_check_docs(context)
+    print("Checking app config schema...")
+    validate_app_config(context)
     if not lint_only:
         print("Running unit tests...")
         unittest(context, failfast=failfast, keepdb=keepdb)
         unittest_coverage(context)
     print("All tests have passed!")
+
+
+@task
+def generate_app_config_schema(context):
+    """Generate the app config schema from the current app config.
+
+    WARNING: Review and edit the generated file before committing.
+
+    Its content is inferred from:
+
+    - The current configuration in `PLUGINS_CONFIG`
+    - `NautobotAppConfig.default_settings`
+    - `NautobotAppConfig.required_settings`
+    """
+    start(context, service="nautobot")
+    nbshell(context, file="development/app_config_schema.py", env={"APP_CONFIG_SCHEMA_COMMAND": "generate"})
+
+
+@task
+def validate_app_config(context):
+    """Validate the app config based on the app config schema."""
+    start(context, service="nautobot")
+    nbshell(context, plain=True, file="development/app_config_schema.py", env={"APP_CONFIG_SCHEMA_COMMAND": "validate"})
