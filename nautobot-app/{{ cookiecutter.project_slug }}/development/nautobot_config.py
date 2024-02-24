@@ -17,6 +17,14 @@ if DJANGO_ALLOW_CIDR_ENABLED:
 DEBUG = is_truthy(os.getenv("NAUTOBOT_DEBUG", False))
 _TESTING = len(sys.argv) > 1 and sys.argv[1] == "test"
 
+# https://docs.nautobot.com/projects/core/en/stable/development/apps/api/testing/
+# TEST_RUNNER = "nautobot.core.tests.runner.NautobotTestRunner"
+# Disable test data factories by default so as not to cause issues for plugins.
+# The nautobot_config.py that Nautobot core uses for its own tests will override this to True.
+TEST_USE_FACTORIES = is_truthy(os.getenv("NAUTOBOT_TEST_USE_FACTORIES", "False"))
+# Pseudo-random number generator seed, for reproducibility of test results.
+TEST_FACTORY_SEED = os.getenv("NAUTOBOT_TEST_FACTORY_SEED", None)
+
 if DEBUG and not _TESTING:
     DEBUG_TOOLBAR_CONFIG = {"SHOW_TOOLBAR_CALLBACK": lambda _request: True}
 
@@ -154,6 +162,10 @@ if not _TESTING:
         "loggers": {
             "django": {"handlers": ["normal_console"], "level": "INFO"},
             "nautobot": {
+                "handlers": ["verbose_console" if DEBUG else "normal_console"],
+                "level": LOG_LEVEL,
+            },
+            "{{ cookiecutter.app_name }}": {
                 "handlers": ["verbose_console" if DEBUG else "normal_console"],
                 "level": LOG_LEVEL,
             },
