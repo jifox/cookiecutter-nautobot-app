@@ -25,12 +25,15 @@ if DEBUG and not _TESTING:
     if "debug_toolbar.middleware.DebugToolbarMiddleware" not in MIDDLEWARE:  # noqa: F405
         MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")  # noqa: F405
 
+#
+# Misc. settings
+#
 
 # This is a list of valid fully-qualified domain names (FQDNs) for the Nautobot server. Nautobot will not permit write
 # access to the server via any other hostnames. The first FQDN in the list will be treated as the preferred name.
 #
 # Example: ALLOWED_HOSTS = ['nautobot.example.com', 'nautobot.internal.local']
-ALLOWED_HOSTS = os.getenv("NAUTOBOT_ALLOWED_HOSTS").split(",")  # type: ignore
+ALLOWED_HOSTS = os.getenv("NAUTOBOT_ALLOWED_HOSTS", "").replace(",", " ").split(" ")
 
 
 #
@@ -48,10 +51,6 @@ if DJANGO_ALLOW_CIDR_ENABLED:
     else:
         print("WARNING: No CIDR networks defined in NAUTOBOT_ALLOWED_CIDR_NETS environment variable.")
 
-
-#
-# Misc. settings
-#
 
 SECRET_KEY = os.getenv("NAUTOBOT_SECRET_KEY", "")
 
