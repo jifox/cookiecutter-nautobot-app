@@ -170,8 +170,8 @@ def run_command(context, command, service="nautobot", **kwargs):
         else:
             if "command_env" in kwargs:
                 command_env = kwargs.pop("command_env")
-            for key, value in command_env.items():
-                compose_command += f' --env="{key}={value}"'
+                for key, value in command_env.items():
+                    compose_command += f' --env="{key}={value}"'
 
             compose_command = f"run {'--user=root ' if root else ''}--rm --entrypoint '{command}' {service}"
 
