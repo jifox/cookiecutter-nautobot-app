@@ -200,14 +200,23 @@ if {{ cookiecutter.app_name | upper }}_ENABLED:
                 }
             }
         )
-# Apps configuration settings. These settings are used by various Apps that the user may have installed.
-# Each key in the dictionary is the name of an installed App and its value is a dictionary of settings.
-# PLUGINS_CONFIG = {
-#     '{{ cookiecutter.app_name }}': {
-#         'foo': 'bar',
-#         'buzz': 'bazz'
-#     }
-# }
+        # Apps configuration settings. These settings are used by various Apps that the user may have installed.
+        # Each key in the dictionary is the name of an installed App and its value is a dictionary of settings.
+        # PLUGINS_CONFIG = {
+        #     '{{ cookiecutter.app_name }}': {
+        #         'foo': 'bar',
+        #         'buzz': 'bazz'
+        #     }
+        # }
+
+    if "{{ cookiecutter.app_name }}" not in LOGGING.get("loggers"):  # type: ignore
+        {{ cookiecutter.app_name }}_logger = {
+            "{{ cookiecutter.app_name }}": {
+                "handlers": ["verbose_console" if DEBUG else "normal_console"],
+                "level": LOG_LEVEL,
+            }
+        }
+        LOGGING.get("loggers").update({{ cookiecutter.app_name }}_logger)  # type: ignore
 
 
 #
