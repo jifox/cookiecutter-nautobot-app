@@ -33,6 +33,10 @@ if DEBUG and not _TESTING:
     if "debug_toolbar.middleware.DebugToolbarMiddleware" not in MIDDLEWARE:  # noqa: F405
         MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")  # noqa: F405
 
+# Do *not* send anonymized install metrics when post_upgrade or send_installation_metrics management commands are run
+INSTALLATION_METRICS_ENABLED = is_truthy(os.getenv("NAUTOBOT_INSTALLATION_METRICS_ENABLED", "False"))
+
+
 #
 # Misc. settings
 #
@@ -128,6 +132,10 @@ NAPALM_TIMEOUT = int(os.getenv("NAUTOBOT_NAPALM_TIMEOUT", 30))
 
 #
 # Logging
+#
+
+#
+# Logging for the development environment, taking into account the redefinition of DEBUG above
 #
 
 LOG_LEVEL = "DEBUG" if DEBUG else "INFO"
