@@ -23,8 +23,7 @@ from invoke.tasks import task as invoke_task
 def is_truthy(arg):
     """Convert "truthy" strings into Booleans.
 
-    Examples
-    --------
+    Examples:
         >>> is_truthy('yes')
         True
     Args:
@@ -115,7 +114,6 @@ def docker_compose(context, command, **kwargs):
     """Helper function for running a specific docker compose command with all appropriate parameters and environment.
 
     Args:
-    ----
         context (obj): Used to run specific commands
         command (str): Command string to append to the "docker compose ..." command, such as "build", "up", etc.
         **kwargs: Passed through to the context.run() call.
@@ -154,6 +152,11 @@ def docker_compose(context, command, **kwargs):
 def run_command(context, command, service="nautobot", **kwargs):
     """Wrapper to run a command locally or inside the nautobot container."""
     if is_truthy(context.{{ cookiecutter.app_name }}.local):
+        if "command_env" in kwargs:
+            kwargs["env"] = {
+                **kwargs.get("env", {}),
+                **kwargs.pop("command_env"),
+            }
         context.run(command, **kwargs)
     else:
         # Check if nautobot is running, no need to start another nautobot container to run a command
@@ -163,7 +166,14 @@ def run_command(context, command, service="nautobot", **kwargs):
         if service in results.stdout:
             compose_command = f"exec {'--user=root ' if root else ''}{service} {command}"
         else:
-            compose_command = f"run {'--user=root ' if root else ''}--rm --entrypoint '' {service} {command}"
+            compose_command = f"run {'--user=root ' if root else ''}--rm --entrypoint ''"
+
+        if "command_env" in kwargs:
+            command_env = kwargs.pop("command_env")
+            for key, value in command_env.items():
+                compose_command += f' --env="{key}={value}"'
+
+        compose_command += f" -- {service} {command}"
 
         pty = kwargs.pop("pty", True)
 
@@ -336,15 +346,22 @@ def logs(context, service="", follow=False, tail=0):
 # ------------------------------------------------------------------------------
 # ACTIONS
 # ------------------------------------------------------------------------------
-@task(help={"file": "Python file to execute"})
-def nbshell(context, file=""):
+@task(
+    help={
+        "file": "Python file to execute",
+        "env": "Environment variables to pass to the command",
+        "plain": "Flag to run nbshell in plain mode (default: False)",
+    },
+)
+def nbshell(context, file="", env={}, plain=False):
     """Launch an interactive nbshell session."""
     command = [
         "nautobot-server",
         "nbshell",
+        "--plain" if plain else "",
         f"< '{file}'" if file else "",
     ]
-    run_command(context, " ".join(command), pty=not bool(file))
+    run_command(context, " ".join(command), pty=not bool(file), command_env=env)
 
 
 @task
@@ -517,9 +534,11 @@ def import_db(context, db_name="", input_file="dump.sql"):
             '--execute="',
             f"DROP DATABASE IF EXISTS {db_name};",
             f"CREATE DATABASE {db_name};",
-            ""
-            if db_name == "$MYSQL_DATABASE"
-            else f"GRANT ALL PRIVILEGES ON {db_name}.* TO $MYSQL_USER; FLUSH PRIVILEGES;",
+            (
+                ""
+                if db_name == "$MYSQL_DATABASE"
+                else f"GRANT ALL PRIVILEGES ON {db_name}.* TO $MYSQL_USER; FLUSH PRIVILEGES;"
+            ),
             '"',
             "&&",
             "mysql",
@@ -706,28 +725,6 @@ def generate_release_notes(context, version=""):
 # ------------------------------------------------------------------------------
 # TESTS
 # ------------------------------------------------------------------------------
-@task(
-    help={
-        "autoformat": "Apply formatting recommendations automatically, rather than failing if formatting is incorrect.",
-    }
-)
-def black(context, autoformat=False):
-    """Check Python code style with Black."""
-    if autoformat:
-        black_command = "black"
-    else:
-        black_command = "black --check --diff"
-
-    command = f"{black_command} ."
-
-    run_command(context, command)
-
-
-@task
-def flake8(context):
-    """Check for PEP8 compliance and other style issues."""
-    command = "flake8 . --config .flake8"
-    run_command(context, command)
 
 
 @task
@@ -747,26 +744,30 @@ def pylint(context):
 @task(aliases=("a",))
 def autoformat(context):
     """Run code autoformatting."""
-    black(context, autoformat=True)
-    ruff(context, action="both", fix=True)
+    ruff(context, fix=True)
 
 
 @task(
     help={
-        "action": "One of 'lint', 'format', or 'both'",
-        "fix": "Automatically fix selected action. May not be able to fix all.",
-        "output_format": "see https://docs.astral.sh/ruff/settings/#output-format",
+        "action": "Available values are `['lint', 'format']`. Can be used multiple times. (default: `['lint']`)",
+        "fix": "Automatically fix selected actions. May not be able to fix all issues found. (default: False)",
+        "output_format": "See https://docs.astral.sh/ruff/settings/#output-format for details. (default: `full`)",
     },
+    iterable=["action"],
 )
-def ruff(context, action="lint", fix=False, output_format="text"):
+def ruff(context, action=["lint"], fix=False, output_format="full"):
     """Run ruff to perform code formatting and/or linting."""
-    if action != "lint":
+    if not action:
+        action = ["lint"]
+
+    if "format" in action:
         command = "ruff format"
         if not fix:
             command += " --check"
         command += " ."
         run_command(context, command)
-    if action != "format":
+
+    if "lint" in action:
         command = "ruff check"
         if fix:
             command += " --fix"
@@ -786,7 +787,6 @@ def yamllint(context):
     """Run yamllint to validate formatting adheres to NTC defined YAML standards.
 
     Args:
-    ----
         context (obj): Used to run specific commands
     """
     command = "yamllint . --format standard"
@@ -811,7 +811,7 @@ def check_migrations(context):
         "verbose": "Enable verbose test output.",
     }
 )
-def unittest(
+def unittest(  # noqa: PLR0913
     context,
     keepdb=False,
     label="{{ cookiecutter.app_name }}",
@@ -859,12 +859,8 @@ def tests(context, failfast=False, keepdb=False, lint_only=False):
         print("Starting Docker Containers...")
         start(context)
     # Sorted loosely from fastest to slowest
-    print("Running black...")
-    black(context)
     print("Running ruff...")
     ruff(context)
-    print("Running flake8...")
-    flake8(context)
     print("Running bandit...")
     bandit(context)
     print("Running yamllint...")
@@ -877,8 +873,33 @@ def tests(context, failfast=False, keepdb=False, lint_only=False):
     pylint(context)
     print("Running mkdocs...")
     build_and_check_docs(context)
+    print("Checking app config schema...")
+    validate_app_config(context)
     if not lint_only:
         print("Running unit tests...")
         unittest(context, failfast=failfast, keepdb=keepdb)
         unittest_coverage(context)
     print("All tests have passed!")
+
+
+@task
+def generate_app_config_schema(context):
+    """Generate the app config schema from the current app config.
+
+    WARNING: Review and edit the generated file before committing.
+
+    Its content is inferred from:
+
+    - The current configuration in `PLUGINS_CONFIG`
+    - `NautobotAppConfig.default_settings`
+    - `NautobotAppConfig.required_settings`
+    """
+    start(context, service="nautobot")
+    nbshell(context, file="development/app_config_schema.py", env={"APP_CONFIG_SCHEMA_COMMAND": "generate"})
+
+
+@task
+def validate_app_config(context):
+    """Validate the app config based on the app config schema."""
+    start(context, service="nautobot")
+    nbshell(context, plain=True, file="development/app_config_schema.py", env={"APP_CONFIG_SCHEMA_COMMAND": "validate"})

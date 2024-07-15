@@ -3,7 +3,7 @@ name: "Rebake Tag"
 on:  # yamllint disable-line rule:truthy
   push:
     tags:
-      - "nautobot-app-v2*"
+      - "nautobot-app-v2.*"
 jobs:
   rebake:
     container: "ghcr.io/nautobot/cookiecutter-nautobot-app-drift-manager/prod:latest"
@@ -15,17 +15,19 @@ jobs:
       max-parallel: 5    # Limit of concurrent jobs
       matrix:
         name:
+          - "bgp-models"
           - "capacity-metrics"
           - "chatops"
           - "circuit-maintenance"
           - "data-validation-engine"
+          - "dev-example"
           - "device-lifecycle-mgmt"
           - "device-onboarding"
           - "firewall-models"
           - "floor-plan"
           - "golden-config"
           - "netbox-importer"
-          - "nornir"
+          - "nornir"  # Postponed # TODO: Comment this line
           - "secrets-providers"
           - "ssot"
           - "version-control"

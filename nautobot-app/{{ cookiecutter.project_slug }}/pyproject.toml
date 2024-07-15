@@ -9,6 +9,7 @@ license = "{{ cookiecutter.open_source_license }}"
 readme = "README.md"
 homepage = "{{ cookiecutter.repo_url }}"
 repository = "{{ cookiecutter.repo_url }}"
+documentation = "{{ cookiecutter.docs_app_url }}/"
 keywords = ["nautobot", "nautobot-app", "nautobot-plugin"]
 classifiers = [
     "Intended Audience :: Developers",
@@ -22,6 +23,10 @@ classifiers = [
 packages = [
     { include = "{{ cookiecutter.app_name }}" },
 ]
+include = [
+    # Poetry by default will exclude files that are in .gitignore
+    "{{ cookiecutter.app_name }}/static/{{ cookiecutter.app_name }}/docs/**/*",
+]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
@@ -30,10 +35,8 @@ nautobot = "^{{ cookiecutter.min_nautobot_version }}"
 
 [tool.poetry.group.dev.dependencies]
 bandit = "*"
-black = "*"
 coverage = "*"
 django-debug-toolbar = "*"
-flake8 = "*"
 invoke = "*"
 ipython = "*"
 pylint = "*"
