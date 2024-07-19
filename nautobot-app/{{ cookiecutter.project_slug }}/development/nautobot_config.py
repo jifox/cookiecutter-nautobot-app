@@ -1,4 +1,5 @@
 """Nautobot development configuration file."""
+
 import os
 import sys
 
@@ -33,8 +34,13 @@ if DEBUG and not _TESTING:
 # access to the server via any other hostnames. The first FQDN in the list will be treated as the preferred name.
 #
 # Example: ALLOWED_HOSTS = ['nautobot.example.com', 'nautobot.internal.local']
-ALLOWED_HOSTS = os.getenv("NAUTOBOT_ALLOWED_HOSTS").split(",")  # type: ignore
-
+ALLOWED_HOSTS = []
+tmp_ALLOWED_HOSTS = os.getenv("NAUTOBOT_ALLOWED_HOSTS").split(",")  # type: ignore
+for host in tmp_ALLOWED_HOSTS:
+    hosts = host.strip().split(" ")
+    for h in hosts:
+        if h and h not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(h)
 
 #
 # Django Middleware Settings
@@ -197,9 +203,10 @@ if {{ cookiecutter.app_name | upper | replace("-", "_") }}_ENABLED:
         # Plugins configuration settings. These settings are used by various plugins that the user may have installed.
         # Each key in the dictionary is the name of an installed plugin and its value is a dictionary of settings.
         PLUGINS_CONFIG = {"{{ cookiecutter.app_name }}": {
-            "foo": "bar",
-            "buzz": "bazz"
-        }}
+                "foo": "bar",
+                "buzz": "bazz"
+            }
+        }
 
 
 # Apps configuration settings. These settings are used by various Apps that the user may have installed.

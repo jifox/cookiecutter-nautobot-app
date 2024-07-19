@@ -50,10 +50,10 @@ done
 
 
 # Set default values
-BACKUP_FILENAME_STARTSWITH=${BACKUP_FILENAME_STARTSWITH:-"{{ cookiecutter.backup_filename_startswith }}/-app-/-"}
-ENABLE_SCP_COPY=${ENABLE_SCP_COPY:-"True"}
+BACKUP_FILENAME_STARTSWITH=${BACKUP_FILENAME_STARTSWITH:-"nautobot-shut-no-shut"}
+ENABLE_SCP_COPY=${ENABLE_SCP_COPY:-"False"}
 LOCAL_BACKUP_DATA_DIR=${LOCAL_BACKUP_DATA_DIR:-"${SCRIPT_DIR}/.backups"}
-REMOTE_BACKUP_DIR=${REMOTE_BACKUP_DIR:-"/mnt/backup/backups/{{ cookiecutter.backup_filename_startswith }}"}
+REMOTE_BACKUP_DIR=${REMOTE_BACKUP_DIR:-"/mnt/swarm_shared/service/nornir-backup/{{ cookiecutter.backup_filename_startswith }}"}
 REMOTE_BACKUP_HOST=${REMOTE_BACKUP_HOST:-"backupserver.example.local"}
 REMOTE_USERNAME=${REMOTE_USERNAME:-"backup"}
 
@@ -123,10 +123,11 @@ backup_media_filename="${backup_dir}/${BACKUP_FILENAME_STARTSWITH}.media.tgz"
 temp_tar_name="${tmp_dir}/${BACKUP_FILENAME_STARTSWITH}.${timestamp_string}.tgz"
 
 # set filename for local backup files
-final_backup_name="${LOCAL_BACKUP_DATA_DIR}/${BACKUP_FILENAME_STARTSWITH}.${timestamp_string}.tgz"
+final_backup_name="${REMOTE_BACKUP_DIR}/${BACKUP_FILENAME_STARTSWITH}.${timestamp_string}.tgz"
 
 # Create backup directory for this backup run and set permissions
-mkdir -p "${backup_dir}"
+sudo mkdir -p "${backup_dir}"
+sudo chmod -R 777 "${backup_dir}"
 
 
 # Backup Postgres Database
@@ -134,7 +135,7 @@ poetry run invoke backup-db --output-file="${backup_sql_filename}"
 # Backup Nautobot media files (images, uploads)
 poetry run invoke backup-media --output-file="${backup_media_filename}"
 # Set permissions to allow access to the backup files at restore time
-chmod -R 777 "${backup_dir}"
+sudo chmod -R 777 "${backup_dir}"
 
 
 # List backup files in local backup directory
@@ -158,7 +159,8 @@ if [ "${ENABLE_SCP_COPY}" == "True" ]; then
   final_backup_name="'${REMOTE_BACKUP_DIR}/${BACKUP_FILENAME_STARTSWITH}.${timestamp_string}.tgz' on server '${REMOTE_BACKUP_HOST}'"
 else
   # Move the backup file to final backup destination
-  mv "${temp_tar_name}" "${final_backup_name}"
+  sudo mv "${temp_tar_name}" "${final_backup_name}"
+  temp_tar_name="${final_backup_name}"
 fi
 
 popd || exit

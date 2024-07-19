@@ -36,6 +36,8 @@ mkdocs-material = "9.1.15"
 mkdocstrings = "0.22.0"
 mkdocstrings-python = "1.5.2"
 
+cookiecutter = "^2.6.0"
+cruft = "^2.15.0"
 [tool.pylint.master]
 ignore = ".venv"
 

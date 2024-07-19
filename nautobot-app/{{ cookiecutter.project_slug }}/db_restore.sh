@@ -44,7 +44,8 @@ done
 # Set default values
 ENABLE_SCP_COPY=${ENABLE_SCP_COPY:-"True"}
 LOCAL_BACKUP_DATA_DIR=${LOCAL_BACKUP_DATA_DIR:-"${SCRIPT_DIR}/.backups"}
-REMOTE_RESTORE_DIR=${REMOTE_RESTORE_DIR:-"/mnt/backup/backups/{{ cookiecutter.backup_filename_startswith }}"}
+REMOTE_RESTORE_DIR=${REMOTE_RESTORE_DIR:-"/mnt/swarm_shared/service/nornir-backup/{{ cookiecutter.backup_filename_startswith }}"}
+BACKUP_FILENAME_STARTSWITH=${BACKUP_FILENAME_STARTSWITH:-"nautobot-shut-no-shut"}
 REMOTE_BACKUP_HOST=${REMOTE_BACKUP_HOST:-"backupserver.example.local"}
 REMOTE_USERNAME=${REMOTE_USERNAME:-"backup"}
 
@@ -75,6 +76,11 @@ do
       shift # past argument
       shift # past value
       ;;
+    -f|--filename)
+      BACKUP_FILENAME_STARTSWITH="$2"
+      shift # past argument
+      shift # past value
+      ;;
     -u|--username)
       REMOTE_USERNAME="$2"
       shift # past argument
@@ -91,22 +97,18 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 
 # Determine the latest backup file and copy it to LOCAL_BACKUP_DATA_DIR
 if [ "${ENABLE_SCP_COPY}" == "True" ]; then
-  latest_backup=$(ssh -t "${REMOTE_USERNAME}@${REMOTE_BACKUP_HOST}" "ls -tr ${REMOTE_RESTORE_DIR}/ | tail -n 1 | tr -cd [:print:]")
+  latest_backup=$(ssh -t "${REMOTE_USERNAME}@${REMOTE_BACKUP_HOST}" "ls -tr ${REMOTE_RESTORE_DIR}/*.tgz | tail -n 1 | tr -cd [:print:]")
 else
   # find latest backup file in ${REMOTE_RESTORE_DIR} (must be in this directory and must be a .tgz file)
-  latest_backup=$(find "${LOCAL_BACKUP_DATA_DIR}" -maxdepth 1 -type f -name "*.tgz" | sort | tail -n 1 | tr -cd [:print:])
+  latest_backup=$(find "${REMOTE_RESTORE_DIR}" -maxdepth 1 -type f -name "*.tgz" | sort | tail -n 1 | tr -cd [:print:])
 fi
-# check if latest_backup exists
-if [ ! -f "${latest_backup}" ]; then
-  echo "ERROR: No backup file found in ${REMOTE_RESTORE_DIR}"
-  exit 1
-fi
+echo "    Latest backup file:          '${latest_backup}'"
 
 # Allow restore of backup files with different Sources (e.g. nautobot-porduction, nautobot-shut-no-shut)
-BACKUP_FILENAME_STARTSWITH=$(basename "${latest_backup}" | cut -d"." -f1 )
+# BACKUP_FILENAME_STARTSWITH=$(basename "${latest_backup}" | cut -d"." -f1 )
 restore_subdir=$(basename "${latest_backup}" | cut -d"." -f2)
-echo "    Restoring backup file: '${latest_backup}'"
-echo "    Subdir: '${restore_subdir}'"
+echo "    Restoring backup file:       '${latest_backup}'"
+echo "    Subdir:                      '${restore_subdir}'"
 echo "    Backup filename starts with: '${BACKUP_FILENAME_STARTSWITH}'"
 
 
@@ -122,11 +124,11 @@ echo "Created temporary directory: ${tmp_dir}"
 
 # Move the backup file to temporary directory
 if [ "${ENABLE_SCP_COPY}" == "True" ]; then
-  scp "${REMOTE_USERNAME}@${REMOTE_BACKUP_HOST}":"${REMOTE_RESTORE_DIR}/${latest_backup}" "${tmp_dir}/"
+  scp "${REMOTE_USERNAME}@${REMOTE_BACKUP_HOST}":"${latest_backup}" "${tmp_dir}/"
 else
   cp "${latest_backup}" "${tmp_dir}"
 fi
-
+sudo chown -R "${USER}":"${USER}" "${tmp_dir}"
 # Extract backup (.sql and media data) to LOCAL_BACKUP_DATA_DIR
 tar -xzf "${tmp_dir}/${BACKUP_FILENAME_STARTSWITH}.${restore_subdir}.tgz" -C "${tmp_dir}/"
 tree "${tmp_dir}"
@@ -137,4 +139,4 @@ poetry run invoke import-db --input-file="${tmp_dir}/backups/${restore_subdir}/$
 poetry run invoke import-media --input-file="${tmp_dir}/backups/${restore_subdir}/${BACKUP_FILENAME_STARTSWITH}.media.tgz"
 
 popd || exit
-echo "Finished restore"
+echo "Finished restore - ${latest_backup}"
