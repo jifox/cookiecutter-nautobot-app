@@ -159,10 +159,15 @@ if not _TESTING:
             },
         },
         "loggers": {
-            "django": {"handlers": ["normal_console"], "level": "INFO"},
+            "django": {
+                "handlers": ["normal_console"],
+                "level": "INFO",
+                "proagate": False,
+            },
             "nautobot": {
                 "handlers": ["verbose_console" if DEBUG else "normal_console"],
                 "level": LOG_LEVEL,
+                "proagate": False,
             },
         },
     }
@@ -217,6 +222,15 @@ if {{ cookiecutter.app_name | upper | replace("-", "_") }}_ENABLED:
 #         'buzz': 'bazz'
 #     }
 # }
+
+    if "{{ cookiecutter.app_name }}" not in LOGGING.get("loggers"):  # type: ignore
+        shut_no_shut_logger = {
+            "{{ cookiecutter.app_name }}": {
+                "handlers": ["verbose_console" if DEBUG else "normal_console"],
+                "level": LOG_LEVEL,
+            }
+        }
+        LOGGING.get("loggers").update(shut_no_shut_logger)  # type: ignore
 
 
 #
@@ -486,11 +500,11 @@ if SECRETS_PROVIDERS_ENABLED:
             }
         }
 
-        if "nautobot_secrets_providers" in PLUGINS_CONFIG:
+        if "nautobot_secrets_providers" in PLUGINS_CONFIG:  # type: ignore
             PLUGINS_CONFIG.get("nautobot_secrets_providers").update(thycotic_seetings)  # type: ignore
             print("INFO: nautobot_secrets_providers plugin updated.")  # noqa: T001
         else:
-            PLUGINS_CONFIG.update({"nautobot_secrets_providers": thycotic_seetings})
+            PLUGINS_CONFIG.update({"nautobot_secrets_providers": thycotic_seetings})  # type: ignore
             print("INFO: nautobot_secrets_providers plugin configured.")
 
 

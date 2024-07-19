@@ -38,6 +38,7 @@ bandit = "*"
 coverage = "*"
 django-debug-toolbar = "*"
 invoke = "*"
+isort = "*"
 ipython = "*"
 pylint = "*"
 pylint-django = "*"
@@ -58,6 +59,7 @@ mkdocstrings-python = "1.5.2"
 towncrier = "~23.6.0"
 to-json-schema = "*"
 jsonschema = "*"
+cruft = "^2.15.0"
 
 [tool.poetry.extras]
 all = [
@@ -66,11 +68,11 @@ all = [
 [tool.pylint.master]
 # Include the pylint_django plugin to avoid spurious warnings about Django patterns
 load-plugins="pylint_django, pylint_nautobot"
-ignore=".venv"
+ignore = ".venv"
 
 [tool.pylint.basic]
 # No docstrings required for private methods (Pylint default), or for test_ functions, or for inner Meta classes.
-no-docstring-rgx="^(_|test_|Meta$)"
+no-docstring-rgx = "^(_|test_|Meta$)"
 
 [tool.pylint.messages_control]
 disable = """,

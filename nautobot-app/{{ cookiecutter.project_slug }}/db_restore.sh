@@ -81,6 +81,11 @@ do
       shift # past argument
       shift # past value
       ;;
+    -f|--filename)
+      BACKUP_FILENAME_STARTSWITH="$2"
+      shift # past argument
+      shift # past value
+      ;;
     -u|--username)
       REMOTE_USERNAME="$2"
       shift # past argument
