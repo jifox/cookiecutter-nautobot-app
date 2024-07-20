@@ -81,11 +81,6 @@ do
       shift # past argument
       shift # past value
       ;;
-    -f|--filename)
-      BACKUP_FILENAME_STARTSWITH="$2"
-      shift # past argument
-      shift # past value
-      ;;
     -u|--username)
       REMOTE_USERNAME="$2"
       shift # past argument
@@ -121,7 +116,8 @@ echo "    Backup filename starts with: '${BACKUP_FILENAME_STARTSWITH}'"
 tmp_dir=$( mktemp -d -t "${BACKUP_FILENAME_STARTSWITH}-XXXXXXXXXX" | tr -cd [:print:])
 clean_up() {
   echo "Cleaning up temporary files in ${1}"
-  rm -rf "${1}"
+  sudo chmod -R 777 "${1}"
+  sudo rm -rf "${1}"
 }
 trap "clean_up $tmp_dir" EXIT
 
