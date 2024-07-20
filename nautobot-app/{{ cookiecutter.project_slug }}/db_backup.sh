@@ -111,7 +111,8 @@ timestamp_string=$(date "+%Y%m%d-%H%M%S")
 tmp_dir=$( mktemp -d -t "${BACKUP_FILENAME_STARTSWITH}-XXXXXXXXXX" | tr -cd [:print:])
 clean_up() {
   echo "Cleaning up temporary files in ${1}"
-  rm -rf "${1}"
+  sudo chmod -R 777 "${1}"
+  sudo rm -rf "${1}"
 }
 trap "clean_up $tmp_dir" EXIT
 
